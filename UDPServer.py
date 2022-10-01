@@ -39,6 +39,30 @@ def threaded_client(connection):
                 players.append(player)
                 reply = 'SUCCESS'
             connection.sendall(str.encode(reply))
+        elif decodeddata == 'query handles':
+            #
+
+            connection.sendall(str.encode(reply))
+        elif decodeddata == 'follow':
+            #
+
+            connection.sendall(str.encode(reply))
+        elif decodeddata == 'drop':
+            #
+
+            connection.sendall(str.encode(reply))
+        elif decodeddata == 'tweet':
+            #
+
+            connection.sendall(str.encode(reply))
+        elif decodeddata == 'end-tweet':
+            #
+
+            connection.sendall(str.encode(reply))
+        elif decodeddata == 'exit':
+            #
+
+            connection.sendall(str.encode(reply))
         else:
             reply = 'error'
     connection.close()
