@@ -4,7 +4,7 @@ import random
 
 ClientSocket = socket.socket()
 host = '10.120.70.106'
-port = 16001
+port = 8001
 
 print('Waiting for connection')
 try:
@@ -20,6 +20,7 @@ while ans[0:5] != 'exit':
     #will check if any of the commands were used
     if ans[0:9] =='register ':
         #register @<handle> <IPv4-address> <port> 
+        #port can be any number of ports
         ClientSocket.send(str.encode(ans))
         Response = ClientSocket.recv(1024)
         print(Response.decode('utf-8'))
@@ -52,6 +53,4 @@ while ans[0:5] != 'exit':
         print('not a valid command try again')
 
 ClientSocket.send(str.encode(ans))
-Response = ClientSocket.recv(1024)
-print(Response.decode('utf-8'))
 ClientSocket.close()
