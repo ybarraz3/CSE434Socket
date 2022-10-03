@@ -3,7 +3,7 @@ import socket
 import random
 
 ClientSocket = socket.socket()
-host = '10.120.70.106'
+host = '10.120.70.117'
 port = 8001
 
 print('Waiting for connection')
@@ -13,7 +13,6 @@ except socket.error as e:
     print(str(e))
 
 ans = 'open'
-
 Response = ClientSocket.recv(1024)
 while ans[0:5] != 'exit':
     ans = input('\nEnter a command:')
