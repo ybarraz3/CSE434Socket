@@ -25,15 +25,16 @@ def threaded_client(connection):
         decodeddata = data.decode('utf-8')
         reply = 'Server Says: ' + data.decode('utf-8')
         if decodeddata[0:9] == 'register ':#checks if command used was register
-            handleinfo = decodeddata.split(' ')
-            handleinfo.remove('register')
-            handleinfo.append([]) # this will represent the followers
+            newhandleinfo = decodeddata.split(' ')
+            newhandleinfo.remove('register')
+            newhandleinfo.append([]) # this will represent the followers
             if((str(len(handleinfo))) <= 4):
                 reply = 'FAILURE'
             for i in handles:
                 if i[0] == handles[0]:
                     reply = 'FAILURE'
             if reply != 'FAILURE':
+                handleinfo = newhandleinfo
                 handles.append(handles)
                 reply = 'SUCCESS'
             connection.sendall(str.encode(reply))
@@ -45,12 +46,36 @@ def threaded_client(connection):
             else:
                 reply = '0\n[]'#no handles
             connection.sendall(str.encode(reply))
-        elif decodeddata[0:7] == 'follow ':
-            #
-
+        elif decodeddata[0:7] == 'follow ':#checks if command used was follow
+            #split into list
+            followinfo = decodeddata.split(' ')
+            #handle i wants to follow handle j
+            #check if i isn't already in follow of handle j
+            #if i is in j then failure
+            for i in handles:
+                if handles[i] == followinfo[2]:
+                    for j in i[3]:
+                        if j == followinfo[1]:
+                            reply = 'FAILURE'
+            #else i is not in follow of j, then add and return success
+            if reply != 'FAILURE':
+                for i in handles:
+                    if handles[i] == followinfo[2]:
+                        handles[i][3].append(followinfo[1])
+                reply = 'SUCCESS'
             connection.sendall(str.encode(reply))
-        elif decodeddata[0:5] == 'drop ':
-            #
+        elif decodeddata[0:5] == 'drop ':#checks if command used was drop
+            #handle i wants to drop handle j
+            #check if i is in followers of j
+            for i in handles:
+                if handles[i] == followinfo[2]:
+                    for j in i[3]:
+                        if j == followinfo[1]:
+                            reply = 'SUCCESS'
+                            handles[i][3].remove(followinfo[1])
+            #if i is not success then failure
+            if reply != 'SUCCESS':
+                reply = 'FAILURE'
 
             connection.sendall(str.encode(reply))
         elif decodeddata[0:6] == 'tweet ':
@@ -67,12 +92,15 @@ def threaded_client(connection):
             #makes connection false
             #then removes them from handle list 
             #and from other handle's followers
-
-
+            handles.remove(handleinfo)
+            for i in handles:
+                for j in i[3]:
+                    if j == handleinfo[3]:
+                        handles[i][3].remove(handleinfo[3])
             connec = False;
         else:
             reply = 'error'
-    handles.remove(handleinfo)
+    
     connection.close()
 
 while True:
