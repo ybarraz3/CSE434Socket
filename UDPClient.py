@@ -5,6 +5,7 @@ import random
 ClientSocket = socket.socket()
 host = '10.120.70.117'
 port = 8001
+registered = 0 #0 for not registered, 1 for registred
 
 print('Waiting for connection')
 try:
@@ -20,9 +21,12 @@ while ans[0:5] != 'exit':
     if ans[0:9] =='register ':
         #register @<handle> <IPv4-address> <port> 
         #port can be any number of ports
-        ClientSocket.send(str.encode(ans))
-        Response = ClientSocket.recv(1024)
-        print(Response.decode('utf-8'))
+        if registed == 0:
+            ClientSocket.send(str.encode(ans))
+            Response = ClientSocket.recv(1024)
+            print(Response.decode('utf-8'))
+        else:
+            print("FAILURE, you are already registred")
     elif ans == 'query handles':
         #query handles
         ClientSocket.send(str.encode(ans))

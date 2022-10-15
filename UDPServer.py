@@ -87,9 +87,11 @@ def threaded_client(connection):
             #placeholder for full project
 
 
+
             connection.sendall(str.encode(reply))
         elif decodeddata[0:10] == 'end-tweet':
             #placeholder for full project
+
 
 
             connection.sendall(str.encode(reply))
@@ -97,11 +99,11 @@ def threaded_client(connection):
             #makes connection false
             #then removes them from handle list 
             #and from other handle's followers
-            #handles.remove(handleinfo)
-            #for i in handles:
-            #    for j in i[3]:
-            #        if j == handleinfo[3]:
-            #            handles[i][3].remove(handleinfo[3])
+            handles.remove(handleinfo)
+            for i in handles:
+                for j in i[3]:
+                    if j == handleinfo[3]:
+                        handles[i][3].remove(handleinfo[3])
             connec = False;
         else:
             reply = 'error'
