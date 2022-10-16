@@ -3,15 +3,29 @@ import socket
 import random
 
 ClientSocket = socket.socket()
+ListeningSocket = socket.socket()
 host = '10.120.70.117'
 port = 8001
 registered = 0 #0 for not registered, 1 for registred
+exit = False
 
 print('Waiting for connection')
 try:
-    ClientSocket.connect((host, port))
+    ClientSocket.connect((host, 8000)) #host,8000 is the server info
 except socket.error as e:
     print(str(e))
+
+#accepts anyone listening
+def threaded_client(connection):
+    while True:
+        data = connection.recv(2048)
+        print(data.decode('utf-8'))
+    connection.close()
+
+#starts a listening port
+def threaded_port(connectionport):
+    Client, address = ListeningSocket.accept()
+    start_new_thread(threaded_client, (Client, ))
 
 ans = 'open'
 Response = ClientSocket.recv(1024)
@@ -25,6 +39,9 @@ while ans[0:5] != 'exit':
             ClientSocket.send(str.encode(ans))
             Response = ClientSocket.recv(1024)
             print(Response.decode('utf-8'))
+            #start listening port
+
+            registered = 1
         else:
             print("FAILURE, you are already registred")
     elif ans == 'query handles':
@@ -52,7 +69,7 @@ while ans[0:5] != 'exit':
         ClientSocket.send(str.encode(ans))
         Response = ClientSocket.recv(1024)
         print(Response.decode('utf-8'))
-    elif ans != 'exit':
+    else:
         print('not a valid command try again')
 
 ClientSocket.send(str.encode(ans))

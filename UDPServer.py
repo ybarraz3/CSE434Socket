@@ -7,9 +7,10 @@ host = '10.120.70.117'
 port = 8001
 clients = []#client, IPv4
 handles = []#handle, IPv4, ports, followers
+handleconnec = []#handle, port info
 
 try:
-    ServerSocket.bind((host, port))
+    ServerSocket.bind((host, 8000))
 except socket.error as e:
     print(str(e))
 
