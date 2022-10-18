@@ -3,7 +3,7 @@ import os
 from _thread import *
 
 ServerSocket = socket.socket()
-host = '10.120.70.117'
+host = '10.120.70.106'
 port = 8001
 clients = []#client, IPv4
 handles = []#handle, IPv4, ports, followers
@@ -21,26 +21,27 @@ def threaded_client(connection):
     connection.send(str.encode('Welcome to Tweeter!'))
     connec = True
     handleinfo = []
-    followers = []
     while connec:
         data = connection.recv(2048)
         decodeddata = data.decode('utf-8')
         reply = 'Server Says: ' + data.decode('utf-8')
         if decodeddata[0:9] == 'register ':#checks if command used was register
+            #register @<handle> <IPv4> <port>
             newhandleinfo = decodeddata.split(' ')
             newhandleinfo.remove('register')
             if(len(newhandleinfo) != 3):
                 reply = 'FAILURE'
-            for i in handles:
-                if i[0] == newhandleinfo[0]:
-                    reply = 'FAILURE'
-            if reply != 'FAILURE':
-                newhandleinfo.append([]) # this will represent the followers
-                handleinfo = newhandleinfo
-                handles.append(handleinfo)
-                reply = 'SUCCESS'
+            else:
+                for i in handles:
+                    if i[0] == newhandleinfo[0]:
+                        reply = 'FAILURE'
+                if reply != 'FAILURE':
+                    newhandleinfo.append([]) # this will represent the followers
+                    handles.append(newhandleinfo)
+                    reply = 'SUCCESS'
             connection.sendall(str.encode(reply))
         elif decodeddata == 'query handles':#checks if command used was query handles
+            #query handles
             #returns the list of handles
             if handles:
                 reply = str(len(handles)) + '\n' #the ammount of players
@@ -49,6 +50,7 @@ def threaded_client(connection):
                 reply = '0\n[]'#no handles
             connection.sendall(str.encode(reply))
         elif decodeddata[0:7] == 'follow ':#checks if command used was follow
+            #follow @<handle1> @<handle2>
             #split into list
             followinfo = decodeddata.split(' ')
             #handle i wants to follow handle j
@@ -68,39 +70,54 @@ def threaded_client(connection):
                         reply = 'SUCCESS'
             connection.sendall(str.encode(reply))
         elif decodeddata[0:5] == 'drop ':#checks if command used was drop
+            #drop @<handle1> @<handle2>
             #handle i wants to drop handle j
-            #check if i is in followers of j
+            #first check if i is in followers of j
+            followinfo =  decodeddata.split(' ')
             for i in handles:
-                reply = 'SUCCESS'
                 if i[0] == followinfo[2]:
                     for j in i[3]:
                         if j == followinfo[1]:
-                            i[3].remove(followinfo[1])
-            newhandleinfo = decodeddata.split(' ')
-            if(len(newhandleinfo) != 3):
-                reply = 'FAILURE'
-            #if i is not success then failure
-            if reply != 'SUCCESS':
-                reply = 'FAILURE'
-
+                            reply = 'SUCCESS'#it is present
+            if reply == 'SUCCESS':
+                #then remove
+                for i in handles:
+                    if i[0] == followinfo[2]:
+                        i[3].remove(followinfo[1])
+            else:#if handle i is not a follower then FAILURE
+                reply == 'FAILURE'
             connection.sendall(str.encode(reply))
         elif decodeddata[0:6] == 'tweet ':
-            #placeholder for full project
-
-
-
+            #tweet @<handle> "tweet"
+            tweetinfo = decodeddata.split(' ')
+            #recieve tweet command
+            #return tuple of followers with port and IPv4 info
+            for i in handles:
+                if(i[0] == tweetinfo[1]):
+                    #first send number of followers
+                    reply = len(i[3])
+                    connection.sendall(str.encode(reply))
+                    #then send the tuple
+                    reply = i[3]
+                    connection.sendall(str.encode(reply))
+            #then do end-tweet together
+            data = connection.recv(2048)#recieve command
+            decodeddata = data.decode('utf-8')
+            reply = 'SUCCESS'
             connection.sendall(str.encode(reply))
-        elif decodeddata[0:10] == 'end-tweet':
-            #placeholder for full project
-
-
-
-            connection.sendall(str.encode(reply))
-        elif decodeddata == 'exit':
+        elif decodeddata[0:5] == 'exit ':
+            #exit @<handle>
             #makes connection false
             #then removes them from handle list 
             #and from other handle's followers
             handles.remove(handleinfo)
+            #fix ^
+
+
+
+
+
+
             for i in handles:
                 for j in i[3]:
                     if j == handleinfo[3]:
