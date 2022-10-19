@@ -87,16 +87,17 @@ while notExit:
                 numOfFollowers = ClientSocket.recv(1024)
                 #then list(tuple of followers
                 response = ClientSocket.recv(1024)
-                listOfFollowers = response.decode('utf-8')
+                listOfFollowers = (response.decode('utf-8')).split(' ')
                 #then propagate tweet
                 if(numOfFollowers.decode('utf-8') >= 1):
-                    for i in listOfFollowers: #handle, IPv4, port
-                        #make temp socket
-                        tempSocket = socket.socket()
-                        tempSocket.connect((listOfFollowers[i][1],listOfFollowers[i][2]))
-                        anstuple = ans.split(' ')
-                        tempSocket.send(str.encode(anstuple[2]))
-                        tempSocket.close()
+                    for i in listOfFollowers: #IPv4, port
+                        if (i%2) == 1:
+                            #make temp socket
+                            tempSocket = socket.socket()
+                            tempSocket.connect((listOfFollowers[i],listOfFollowers[i+1]))
+                            anstuple = ans.split(' ')
+                            tempSocket.send(str.encode(anstuple[2]))
+                            tempSocket.close()
                 #send end-tweet command automatically without user input
                 ans = 'end-tweet '
                 ans += myHandle
