@@ -29,7 +29,7 @@ def threaded_client(connection):
             #register @<handle> <IPv4> <port>
             newhandleinfo = decodeddata.split(' ')
             newhandleinfo.remove('register')
-            if(len(newhandleinfo) != 3):
+            if((len(newhandleinfo) != 3)|(2 <= len(newhandleinfo[1]) <= 14)):
                 reply = 'FAILURE'
             else:
                 for i in handles:
@@ -74,7 +74,7 @@ def threaded_client(connection):
             #handle i wants to drop handle j
             #first check if i is in followers of j
             followinfo =  decodeddata.split(' ')
-            if(len(followinfo == 3)):
+            if(len(followinfo) == 3):
                 for i in handles:
                     if i[0] == followinfo[2]:
                         for j in i[3]:
@@ -95,24 +95,32 @@ def threaded_client(connection):
             tweetinfo = decodeddata.split(' ')
             #recieve tweet command
             #return tuple of followers with port and IPv4 info
-            for i in handles:
-                if(i[0] == tweetinfo[1]):
-                    #first send number of followers
-                    reply = str(len(i[3]))
-                    connection.sendall(str.encode(reply))
-                    #then send the tuple
-                    reply = ''
-                    #make sure to append all the tuple's IPv4 and port
-                    for j in i[3]:#go thorough each follower
-                        for k in handles:#find the follower and get their info
-                            if j == k[0]:#follower = user in handles
-                                reply += str(k[1]) + ' '#append IPv4
-                                reply += str(k[2]) + ' '#append port
-                    connection.sendall(str.encode(reply))
-            #then do end-tweet together
-            data = connection.recv(2048)#recieve command
-            decodeddata = data.decode('utf-8')
-            reply = 'SUCCESS'
+            if(1 <= len(tweetinfo[2]) <= 140):
+                for i in handles:
+                    if(i[0] == tweetinfo[1]):
+                        reply = 'SUCCESS'
+                        connection.sendall(str.encode(reply))
+                        #first send number of followers
+                        reply = str(len(i[3]))
+                        connection.sendall(str.encode(reply))
+                        #then send the tuple
+                        reply = ''
+                        #make sure to append all the tuple's IPv4 and port
+                        for j in i[3]:#go thorough each follower
+                            for k in handles:#find the follower and get their info
+                                if j == k[0]:#follower = user in handles
+                                    reply += str(k[1]) + ' '#append IPv4
+                                    reply += str(k[2]) + ' '#append port
+                        connection.sendall(str.encode(reply))
+                    else:
+                        reply = 'FAILURE'
+                if(replpy != 'FAILURE'):
+                    #then do end-tweet together
+                    data = connection.recv(2048)#recieve command
+                    decodeddata = data.decode('utf-8')
+                    reply = 'SUCCESS'
+            else:
+                reply ='FAILURE'
             connection.sendall(str.encode(reply))
         elif decodeddata[0:5] == 'exit ':
             #exit @<handle>
