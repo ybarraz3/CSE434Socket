@@ -29,7 +29,7 @@ def threaded_client(connection):
             #register @<handle> <IPv4> <port>
             newhandleinfo = decodeddata.split(' ')
             newhandleinfo.remove('register')
-            if((len(newhandleinfo) != 3)|(2 <= len(newhandleinfo[1]) <= 14)):
+            if((len(newhandleinfo) != 3) or (not(1 <= len(newhandleinfo[0]) <= 15))):
                 reply = 'FAILURE'
             else:
                 for i in handles:
@@ -95,45 +95,59 @@ def threaded_client(connection):
             tweetinfo = decodeddata.split(' ')
             #recieve tweet command
             #return tuple of followers with port and IPv4 info
-            if(1 <= len(tweetinfo[2]) <= 140):
+            if(len(tweetinfo) < 3):
+                reply = 'FAILURE'
+                connection.send(str.encode(reply))
+            elif(1 <= len(tweetinfo[2]) <= 140):
+                reply = 'FAILURE'
                 for i in handles:
                     if(i[0] == tweetinfo[1]):
                         reply = 'SUCCESS'
-                        connection.sendall(str.encode(reply))
+                        connection.send(str.encode(reply))
+                        connection.recv(2048)#wait to make sure client recieved msg
                         #first send number of followers
                         reply = str(len(i[3]))
-                        connection.sendall(str.encode(reply))
-                        #then send the tuple
+                        connection.send(str.encode(reply))
+                        connection.recv(2048)#confirm client got followers
                         reply = ''
+                        #then send the tuple
                         #make sure to append all the tuple's IPv4 and port
                         for j in i[3]:#go thorough each follower
                             for k in handles:#find the follower and get their info
                                 if j == k[0]:#follower = user in handles
                                     reply += str(k[1]) + ' '#append IPv4
                                     reply += str(k[2]) + ' '#append port
-                        connection.sendall(str.encode(reply))
-                    else:
-                        reply = 'FAILURE'
-                if(replpy != 'FAILURE'):
+                        connection.send(str.encode(reply))
+                if(reply != 'FAILURE'):
                     #then do end-tweet together
                     data = connection.recv(2048)#recieve command
                     decodeddata = data.decode('utf-8')
                     reply = 'SUCCESS'
+                    connection.sendall(str.encode(reply))
+                else:
+                    connection.sendall(str.encode(reply))
             else:
                 reply ='FAILURE'
-            connection.sendall(str.encode(reply))
+                connection.sendall(str.encode(reply))
         elif decodeddata[0:5] == 'exit ':
             #exit @<handle>
             #1: removes handle from list, along with its info
             for i in handles:
-                if i[0] == decodeddata[6:]:
-                    handles.remove(decodeddata[6:])       
-            #2: then removes handle as follower in other handle lists
-            for i in handles:#goes through each handle
-                for j in i[3]:#goes through a handle's followers
-                    if j == decodeddata[6:]:#if our handle is a follower then remove
-                        i[3].remove(decodeddata[6:])
-            connec = False
+                if i[0] == decodeddata[5:]:
+                    handles.remove(i)
+                    reply = 'FOUND'       
+            if reply == 'FOUND':
+                #2: then removes handle as follower in other handle lists
+                for i in handles:#goes through each handle
+                    for j in i[3]:#goes through a handle's followers
+                        if j == decodeddata[5:]:#if our handle is a follower then remove
+                            i[3].remove(decodeddata[5:])
+                reply = 'SUCCESS'
+                connection.sendall(str.encode(reply))
+                connec = False
+            else:
+                reply = 'FAILURE'
+                connection.sendall(str.encode(reply))
         else:
             reply = 'error'
     connection.close()

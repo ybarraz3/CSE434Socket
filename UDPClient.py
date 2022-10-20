@@ -20,7 +20,9 @@ except socket.error as e:
 #accepts anyone listening
 def threaded_client(connection):
     data = connection.recv(2048)
+    print('\n')
     print(data.decode('utf-8'))
+    print('\nEnter a command:')
     #connection.recv(2048)
     connection.close()
 
@@ -41,7 +43,7 @@ ans = 'open'
 Response = ClientSocket.recv(1024)
 notExit = True
 while notExit:
-    ans = input('\nEnter a command:')
+    ans = input('\nEnter a command:\n')
     #will check if any of the commands were used
     if ans[0:9] =='register ':#register @<handle> <IPv4-address> <port> 
         #only one port can be used
@@ -78,26 +80,35 @@ while notExit:
         else:
             print('FAILURE, please register first')
     elif ans[0:6] == 'tweet ':#tweet @<handle> "tweet"
-        if(registered == 1):
+        #break tweet command
+        anstuple = ans.split(' ')
+        if((registered == 1) and (len(anstuple) >= 3)):
             ClientSocket.send(str.encode(ans))
             Response = ClientSocket.recv(1024)
             print(Response.decode('utf-8'))
+            ClientSocket.send(str.encode('recv'))
             if(Response.decode('utf-8') == 'SUCCESS'):
                 #get num of followers
                 numOfFollowers = ClientSocket.recv(1024)
-                #then list(tuple of followers
-                response = ClientSocket.recv(1024)
-                listOfFollowers = (response.decode('utf-8')).split(' ')
-                #then propagate tweet
-                if(numOfFollowers.decode('utf-8') >= 1):
-                    for i in listOfFollowers: #IPv4, port
-                        if (i%2) == 1:
+                ClientSocket.send(str.encode('recv'))
+                if int(numOfFollowers.decode('utf-8')) != 0:
+                    #then list(tuple of followers
+                    response = ClientSocket.recv(1024)
+                    listOfFollower = response.decode('utf-8')
+                    listOfFollowers = listOfFollower.split(' ')
+                    #then propagate tweet
+                    if(int(numOfFollowers.decode('utf-8')) >= 1):
+                        i = 0
+                        while i < int(numOfFollowers):#IPv4, port
                             #make temp socket
                             tempSocket = socket.socket()
-                            tempSocket.connect((listOfFollowers[i],listOfFollowers[i+1]))
-                            anstuple = ans.split(' ')
+                            try:
+                                tempSocket.connect((listOfFollowers[2*i], int(listOfFollowers[(2*i)+1]))) #conect to IPv4 and port
+                            except socket.error as e:
+                                print(str(e))
                             tempSocket.send(str.encode(anstuple[2]))
                             tempSocket.close()
+                            i += 1  
                 #send end-tweet command automatically without user input
                 ans = 'end-tweet '
                 ans += myHandle
@@ -105,7 +116,7 @@ while notExit:
                 Response = ClientSocket.recv(1024)
                 print(Response.decode('utf-8'))
         else:
-            print('FAILURE, please register first')
+            print('FAILURE')
     elif ans[0:5] == 'exit ':#exit @<handle>
         if(registered == 1):
             ClientSocket.send(str.encode(ans))
@@ -113,8 +124,10 @@ while notExit:
             if(Response.decode('utf-8') == 'SUCCESS'):
                 print(Response.decode('utf-8'))
                 notExit = False
-                ClientSocket.close()
             else:
                 print(Response.decode('utf-8'))
+        else:
+            print('FAILURE')
     else:
         print('not a valid command try again')
+ClientSocket.close()
