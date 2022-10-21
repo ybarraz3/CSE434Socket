@@ -60,7 +60,7 @@ while notExit:
                 start_new_thread(threaded_port, (splitans[2], ))
                 registered = 1
         else:
-            print("FAILURE, you are already registred")
+            print("FAILURE")
     elif ans == 'query handles':#query handles
         ClientSocket.send(str.encode(ans))
         Response = ClientSocket.recv(1024)
@@ -71,14 +71,14 @@ while notExit:
             Response = ClientSocket.recv(1024)
             print(Response.decode('utf-8'))
         else:
-            print('FAILURE, please register first')
+            print('FAILURE')
     elif ans[0:5] == 'drop ':#drop @<handle1> @<handle2>
         if(registered == 1):
             ClientSocket.send(str.encode(ans))
             Response = ClientSocket.recv(1024)
             print(Response.decode('utf-8'))
         else:
-            print('FAILURE, please register first')
+            print('FAILURE')
     elif ans[0:6] == 'tweet ':#tweet @<handle> "tweet"
         #break tweet command
         anstuple = ans.split(' ')
@@ -99,15 +99,18 @@ while notExit:
                     #then propagate tweet
                     if(int(numOfFollowers.decode('utf-8')) >= 1):
                         i = 0
+                        tweetsender = myHandle
                         while i < int(numOfFollowers):#IPv4, port
                             #make temp socket
                             tempSocket = socket.socket()
                             try:
-                                tempSocket.connect((listOfFollowers[2*i], int(listOfFollowers[(2*i)+1]))) #conect to IPv4 and port
+                                tempSocket.connect((listOfFollowers[3*i], int(listOfFollowers[(3*i)+1]))) #conect to IPv4 and port
                             except socket.error as e:
                                 print(str(e))
-                            tempSocket.send(str.encode(anstuple[2]))
+                            tweetMessage = tweetsender + ' ' + anstuple[2]
+                            tempSocket.send(str.encode(tweetMessage))
                             tempSocket.close()
+                            tweetsender = listOfFollowers[(3*i)+2]
                             i += 1  
                 #send end-tweet command automatically without user input
                 ans = 'end-tweet '

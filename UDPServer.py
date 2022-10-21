@@ -86,9 +86,9 @@ def threaded_client(connection):
                         if i[0] == followinfo[2]:
                             i[3].remove(followinfo[1])
                 else:#if handle i is not a follower then FAILURE
-                    reply == 'FAILURE'
+                    reply = 'FAILURE'
             else:
-                reply == 'FAILURE'
+                reply = 'FAILURE'
             connection.sendall(str.encode(reply))
         elif decodeddata[0:6] == 'tweet ':
             #tweet @<handle> "tweet"
@@ -117,6 +117,7 @@ def threaded_client(connection):
                                 if j == k[0]:#follower = user in handles
                                     reply += str(k[1]) + ' '#append IPv4
                                     reply += str(k[2]) + ' '#append port
+                                    reply += str(k[0]) + ' '#append name
                         connection.send(str.encode(reply))
                 if(reply != 'FAILURE'):
                     #then do end-tweet together
